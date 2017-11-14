@@ -28,7 +28,8 @@ class VueJsMenuModifier(Modifier):
 
         # Prevent parsing all this again when rendering the menu in a second step.
         if hasattr(self.renderer, 'vue_js_structure_started'):
-            return nodes
+            # return nodes
+            pass  # REPORT ISSUE: this does not work as expected - even though vue_js_structure_started is set to True, nodes do not contain route related attr
         else:
             self.renderer.vue_js_structure_started = True
 
@@ -43,6 +44,11 @@ class VueJsMenuModifier(Modifier):
                 node.attr['cms_page'] = Page.objects.get(id=node.id)
 
             node_route = get_node_route(request=request, node=node, renderer=self.renderer)
+
+            if node.attr.get('is_page'):
+                # for page type nodes add all title translations on top level
+                title = node.attr['cms_page'].title_set.get(language=request.LANGUAGE_CODE)
+                node_route['title'] = title.page_title if title.page_title else title.title
 
             named_route_path_pattern = node.attr.get('named_route_path_pattern')
             if named_route_path_pattern:
